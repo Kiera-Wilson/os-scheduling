@@ -1,6 +1,12 @@
 #include "process.h"
 
 // Process class methods
+//warning, dont divide this up into RR anf FCFS
+//the only thing different between algorithms is how to sort the processor list
+//understand the code and the problem and then make a game plan
+//recommends to start the coding in main
+//lanch with make, then ./bin/ossscheduler rescr/congig_01.txt
+//warning: do not make it sleep for the CPU burst time, sleep for small time and check again for interupts as well
 Process::Process(ProcessDetails details, uint64_t current_time)
 {
     int i;
@@ -143,6 +149,7 @@ bool SjfComparator::operator ()(const Process *p1, const Process *p2)
 }
 
 // PP - comparator for sorting read queue based on priority
+///true means you should swap, flase means you shouldnt
 bool PpComparator::operator ()(const Process *p1, const Process *p2)
 {
     // your code here!
