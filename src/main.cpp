@@ -42,10 +42,10 @@ int main(int argc, char **argv)
     std::vector<Process*> processes;
 
     // Read configuration file for scheduling simulation
-    SchedulerConfig *config = readConfigFile(argv[1]);
+    SchedulerConfig *config = readConfigFile(argv[1]); //read file and store
 
     // Store configuration parameters in shared data object
-    uint8_t num_cores = config->cores;
+    uint8_t num_cores = config->cores; 
     shared_data = new SchedulerData();
     shared_data->algorithm = config->algorithm;
     shared_data->context_switch = config->context_switch;
@@ -53,11 +53,11 @@ int main(int argc, char **argv)
     shared_data->all_terminated = false;
 
     // Create processes
-    uint64_t start = currentTime();
-    for (i = 0; i < config->num_processes; i++)
+    uint64_t start = currentTime(); //get current time
+    for (i = 0; i < config->num_processes; i++) //lop over processes
     {
-        Process *p = new Process(config->processes[i], start);
-        processes.push_back(p);
+        Process *p = new Process(config->processes[i], start); //new process class
+        processes.push_back(p); //add them to the list of processes
         // If process should be launched immediately, add to ready queue
         if (p->getState() == Process::State::Ready)
         {
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
     std::thread *schedule_threads = new std::thread[num_cores];
     for (i = 0; i < num_cores; i++)
     {
-        schedule_threads[i] = std::thread(coreRunProcesses, i, shared_data);
+        schedule_threads[i] = std::thread(coreRunProcesses, i, shared_data); //launch for CPU processor
     }
 
     // Main thread work goes here
@@ -83,11 +83,11 @@ int main(int argc, char **argv)
         clearOutput(num_lines);
 
         // Do the following:
-        //   - Get current time
+        //   - Get current time, based on current time check next thing (time since the program started
         //   - *Check if any processes need to move from NotStarted to Ready (based on elapsed time), and if so put that process in the ready queue
         //   - *Check if any processes have finished their I/O burst, and if so put that process back in the ready queue
         //   - *Check if any running process need to be interrupted (RR time slice expires or newly ready process has higher priority)
-        //   - *Sort the ready queue (if needed - based on scheduling algorithm)
+        //   - *Sort the ready queue (if needed - based on scheduling algorithm) (RR andd FCFS dont need to be sorted)
         //   - Determine if all processes are in the terminated state
         //   - * = accesses shared data (ready queue), so be sure to use proper synchronization
 
