@@ -52,6 +52,8 @@ int main(int argc, char **argv)
     shared_data->time_slice = config->time_slice;
     shared_data->all_terminated = false;
 
+    
+
     // Create processes
     uint64_t start = currentTime(); //get current time
     for (i = 0; i < config->num_processes; i++) //lop over processes
@@ -84,11 +86,48 @@ int main(int argc, char **argv)
 
         // Do the following:
         //   - Get current time, based on current time check next thing (time since the program started
+        uint64_t timePassed = currentTime();
+        
+        //loop through processes
+        for(i=0; i< processes.size(); i++){
+            //lock the shared data while we use it
+            std::lock_guard<std::mutex>lock(shared_data->mutex);
         //   - *Check if any processes need to move from NotStarted to Ready (based on elapsed time), and if so put that process in the ready queue
+            if(processes[i]->getStartTime() == timePassed){
+                //change state from not ready to ready
+                processes[i]->setState(Process::State::Ready, currentTime());
+                //add process to the ready queue
+                shared_data->ready_queue.push_back(processes[i]);
+            }
+        }
+        //we will update process here once we write that part
         //   - *Check if any processes have finished their I/O burst, and if so put that process back in the ready queue
+        for (i = 0; i < processes.size(); i++)
+        {
+            //lock the data again
+            std::lock_guard<std::mutex>lock(shared_data->mutex);
+            int elapssed_burst_time = currentTime() - processes[i]->getBurstStartTime();
+            int burstTotal = processes[i]->getBurstTotalTime();
+            //if it is done, put it back in the ready queue
+            if(elapssed_burst_time >= burstTotal)
+            {
+                //ready state
+                processes[i]->setState(Process::State::Ready, currentTime());
+                //put back into ready queue
+                shared_data->ready_queue.push_back(processes[i]);
+            }
+
+            /* code */
+        }
+        
+        
+           /* if(processes[i].getRemainingTime == 0]{
+
+            })*/
         //   - *Check if any running process need to be interrupted (RR time slice expires or newly ready process has higher priority)
         //   - *Sort the ready queue (if needed - based on scheduling algorithm) (RR andd FCFS dont need to be sorted)
         //   - Determine if all processes are in the terminated state
+        
         //   - * = accesses shared data (ready queue), so be sure to use proper synchronization
 
         // output process status table

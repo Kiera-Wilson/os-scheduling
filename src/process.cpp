@@ -5,7 +5,7 @@
 //the only thing different between algorithms is how to sort the processor list
 //understand the code and the problem and then make a game plan
 //recommends to start the coding in main
-//lanch with make, then ./bin/ossscheduler rescr/congig_01.txt
+//lanch with make, then ./bin/osscheduler resrc/config_01.txt
 //warning: do not make it sleep for the CPU burst time, sleep for small time and check again for interupts as well
 Process::Process(ProcessDetails details, uint64_t current_time)
 {
@@ -40,6 +40,12 @@ Process::Process(ProcessDetails details, uint64_t current_time)
 Process::~Process()
 {
     delete[] burst_times;
+}
+
+int Process::getBurstTotalTime(int i)
+{
+    //i dont really understand what burst_times is holding so I dont know if this will work
+    return burst_times[i];
 }
 
 uint16_t Process::getPid() const
