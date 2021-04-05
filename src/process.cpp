@@ -42,11 +42,38 @@ Process::~Process()
     delete[] burst_times;
 }
 
-int Process::getBurstTotalTime(int i)
+uint32_t Process::getBurstTotalTime(int i)
 {
     //i dont really understand what burst_times is holding so I dont know if this will work
+    uint32_t burstTotalTime = 0;
+    for (i = 0; i < num_bursts; i++)
+    {
+        burstTotalTime = burstTotalTime + burst_times[i];
+    }
+
+    return burstTotalTime;
+}
+
+uint32_t Process::getSingleBurstTime(int i)
+{
     return burst_times[i];
 }
+
+int Process::getBurstnumber()
+{
+    return num_bursts;
+}
+
+uint16_t Process::getCurrentBurst() 
+{
+    return current_burst;
+}
+
+void Process::setCurrentBurst(int nextBurst)  
+{
+    current_burst = nextBurst;
+}
+
 
 uint16_t Process::getPid() const
 {

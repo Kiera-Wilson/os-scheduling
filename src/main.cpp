@@ -45,7 +45,7 @@ int main(int argc, char **argv)
     SchedulerConfig *config = readConfigFile(argv[1]); //read file and store
 
     // Store configuration parameters in shared data object
-    uint8_t num_cores = config->cores; 
+    uint8_t num_cores = config->cores;
     shared_data = new SchedulerData();
     shared_data->algorithm = config->algorithm;
     shared_data->context_switch = config->context_switch;
@@ -77,6 +77,8 @@ int main(int argc, char **argv)
         schedule_threads[i] = std::thread(coreRunProcesses, i, shared_data); //launch for CPU processor
     }
 
+
+
     // Main thread work goes here
     int num_lines = 0;
     while (!(shared_data->all_terminated))
@@ -84,47 +86,88 @@ int main(int argc, char **argv)
         // Clear output from previous iteration
         clearOutput(num_lines);
 
+
         // Do the following:
+
+
         //   - Get current time, based on current time check next thing (time since the program started
-        uint64_t timePassed = currentTime();
-        
+        uint64_t current_time = currentTime();
         //loop through processes
         for(i=0; i< processes.size(); i++){
             //lock the shared data while we use it
             std::lock_guard<std::mutex>lock(shared_data->mutex);
-        //   - *Check if any processes need to move from NotStarted to Ready (based on elapsed time), and if so put that process in the ready queue
-            if(processes[i]->getStartTime() == timePassed){
+
+        // - *Check if any processes need to move from NotStarted to Ready (based on elapsed time), and if so put that process in the ready queue
+            if(processes[i]->getStartTime() <= (currentTime() - start)){
                 //change state from not ready to ready
                 processes[i]->setState(Process::State::Ready, currentTime());
+                processes[i]->setBurstStartTime(currentTime()); //must check later!!!!!
                 //add process to the ready queue
                 shared_data->ready_queue.push_back(processes[i]);
             }
         }
+
+
+        //update the current burst for each process 
+        for(int i=0; i<processes.size(); i++){
+            int currentBurst = processes[i]->getCurrentBurst();
+            if(current_time - processes[i]->getBurstStartTime() >= processes[i]->getSingleBurstTime(processes[i]->getCurrentBurst()) 
+            && processes[i]->getCurrentBurst() < processes[i]->getBurstnumber()){
+
+                processes[i]->setCurrentBurst(currentBurst+1);
+                processes[i]->setBurstStartTime(current_time);
+            }
+        }
+
+        std::cout << "current burst: " << processes[1]->getCurrentBurst() << std::endl;
         //we will update process here once we write that part
-        //   - *Check if any processes have finished their I/O burst, and if so put that process back in the ready queue
+        // - *Check if any processes have finished their I/O burst, and if so put that process back in the ready queue
         for (i = 0; i < processes.size(); i++)
         {
             //lock the data again
             std::lock_guard<std::mutex>lock(shared_data->mutex);
-            int elapssed_burst_time = currentTime() - processes[i]->getBurstStartTime();
-            int burstTotal = processes[i]->getBurstTotalTime();
-            //if it is done, put it back in the ready queue
-            if(elapssed_burst_time >= burstTotal)
+
+            /* I don't think that we need this anymore
+
+            uint64_t elapsed_burst_time = currentTime() - processes[i]->getBurstStartTime(); //check if this is right!!!!!!
+            uint64_t burstTotal = processes[i]->getBurstTotalTime(i);
+            */
+            
+            
+            //if it is in the cpu burst(the index of current burst is even number), put it back in the ready queue
+            if(processes[i]->getCurrentBurst() != 0 && processes[i]->getCurrentBurst() % 2 == 0)
             {
                 //ready state
                 processes[i]->setState(Process::State::Ready, currentTime());
                 //put back into ready queue
                 shared_data->ready_queue.push_back(processes[i]);
+            }else{
+                //ready state
+                processes[i]->setState(Process::State::IO, currentTime());
+                //put back into ready queue
+                //shared_data->ready_queue.pop_front();
             }
 
             /* code */
         }
         
         
-           /* if(processes[i].getRemainingTime == 0]{
-
-            })*/
         //   - *Check if any running process need to be interrupted (RR time slice expires or newly ready process has higher priority)
+
+        for (i = 0; i < processes.size(); i++)
+        {
+            //lock the data again
+            std::lock_guard<std::mutex>lock(shared_data->mutex);
+            
+            //if RR time slice expires or newly ready process has higher priority
+            if(shared_data->time_slice >= processes[i]->getBurstStartTime()-current_time)
+            {
+                
+            }
+        }
+
+
+
         //   - *Sort the ready queue (if needed - based on scheduling algorithm) (RR andd FCFS dont need to be sorted)
         //   - Determine if all processes are in the terminated state
         
@@ -164,7 +207,11 @@ void coreRunProcesses(uint8_t core_id, SchedulerData *shared_data)
 {
     // Work to be done by each core idependent of the other cores
     // Repeat until all processes in terminated state:
+    while (!(shared_data->all_terminated))
+    {
     //   - *Get process at front of ready queue
+    std::vector<Process> process;
+
     //   - Simulate the processes running until one of the following:
     //     - CPU burst time has elapsed
     //     - Interrupted (RR time slice has elapsed or process preempted by higher priority process)
@@ -174,6 +221,7 @@ void coreRunProcesses(uint8_t core_id, SchedulerData *shared_data)
     //     - *Ready queue if interrupted (be sure to modify the CPU burst time to now reflect the remaining time)
     //  - Wait context switching time
     //  - * = accesses shared data (ready queue), so be sure to use proper synchronization
+    }
 }
 
 int printProcessOutput(std::vector<Process*>& processes, std::mutex& mutex)
