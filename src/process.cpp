@@ -177,14 +177,21 @@ void Process::updateBurstTime(int burst_idx, uint32_t new_time)
 // SJF - comparator for sorting read queue based on shortest remaining CPU time
 bool SjfComparator::operator ()(const Process *p1, const Process *p2)
 {
-    // your code here!
-    return false; // change this!
+    if(p1->getRemainingTime() <= p2->getRemainingTime()){
+        return true; // dont switch
+    }else{
+        return false; //switch
+    }
+    
 }
 
 // PP - comparator for sorting read queue based on priority
 ///true means you should swap, flase means you shouldnt
 bool PpComparator::operator ()(const Process *p1, const Process *p2)
 {
-    // your code here!
-    return false; // change this!
+    if(p1->getPriority() <= p2->getPriority()){
+        return true; // dont switch
+    }else{
+        return false; //switch
+    }
 }
