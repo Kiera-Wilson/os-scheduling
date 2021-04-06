@@ -102,7 +102,7 @@ int main(int argc, char **argv)
             if(processes[i]->getStartTime() <= (currentTime() - start) && processes[i]->getState() == Process::State::NotStarted){
                 //change state from not ready to ready
                 processes[i]->setState(Process::State::Ready, currentTime());
-                processes[i]->setBurstStartTime(currentTime()); //must check later!!!!!
+                //processes[i]->setBurstStartTime(currentTime()); //must check later!!!!!
                 //add process to the ready queue
                 shared_data->ready_queue.push_back(processes[i]);
             }
@@ -131,15 +131,16 @@ int main(int argc, char **argv)
 
             
             //if it is in the cpu burst(the index of current burst is even number), put it back in the ready queue
-            if(processes[i]->getCurrentBurst() != 0 && processes[i]->getCurrentBurst() % 2 == 0)
+            if(processes[i]->getState()== Process::State::IO && (currentTime() - processes[i]->getBurstStartTime())>= processes[i]->getSingleBurstTime(i))
             {
                 //ready state
                 processes[i]->setState(Process::State::Ready, currentTime());
                 //put back into ready queue
                 shared_data->ready_queue.push_back(processes[i]);
             }else{
+                //!!!!!I dont think we need this else and it might mess up timing
                 //ready state
-                processes[i]->setState(Process::State::IO, currentTime());
+                //processes[i]->setState(Process::State::IO, currentTime());
                 //put back into ready queue
                 //shared_data->ready_queue.pop_front();
             }
@@ -156,9 +157,18 @@ int main(int argc, char **argv)
             std::lock_guard<std::mutex>lock(shared_data->mutex);
             
             //if RR time slice expires or newly ready process has higher priority
-            if(shared_data->time_slice >= processes[i]->getBurstStartTime()-current_time)
+            if(shared_data->time_slice >= processes[i]->getBurstStartTime()-current_time && shared_data->algorithm == RR)
             {
-                
+                processes[i]->interrupt();
+
+            } else if(shared_data->algorithm == PP){
+                //loop to check if something else has higher priority
+                for (int k =0; k<processes.size(); k++){
+                    //if something does have a lower priority, stop it
+                    if(processes[k]->getPriority()>processes[i]->getPriority()){
+                        processes[i]->interrupt();
+                    }
+                }
             }
         }
 
@@ -168,7 +178,7 @@ int main(int argc, char **argv)
 
         //Process array[] = new Process(readyQSize);
 
-        {//fake scope start
+        {//scope start
         std::lock_guard<std::mutex>lock(shared_data->mutex);
 
         for(int i=0; i<readyQSize;i++){
@@ -188,7 +198,7 @@ int main(int argc, char **argv)
             
         }
 
-        }//fake scope end
+        }// scope end
 
         if(shared_data->algorithm == PP){
         //   - *Sort the ready queue (if needed - based on scheduling algorithm) (RR andd FCFS dont need to be sorted)
@@ -251,6 +261,7 @@ void coreRunProcesses(uint8_t core_id, SchedulerData *shared_data)
     //     - Interrupted (RR time slice has elapsed or process preempted by higher priority process)    
         process->setState(Process::State::Running, currentTime());
         process->setBurstStartTime(currentTime());
+        shared_data->ready_queue.pop_front(); //take the element off of the ready queue
 
         while(1){
             if(currentTime() - process->getBurstStartTime() >= process->getSingleBurstTime(process->getCurrentBurst())){
