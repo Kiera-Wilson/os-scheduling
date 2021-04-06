@@ -24,6 +24,7 @@ private:
     int32_t cpu_time;           // total time spent running on a CPU core
     int32_t remain_time;        // CPU time remaining until terminated
     uint64_t launch_time;       // actual time in ms (since epoch) that process was 'launched'
+    uint64_t start_waitTime;
     // you are welcome to add other private data fields here if you so choose
 
 public:
@@ -46,7 +47,10 @@ public:
     int getBurstnumber();
     uint16_t getCurrentBurst();
 
+
     void setCurrentBurst(int nextBurst);
+    void setStartWaitTime(uint64_t current);
+    void setEndWaitTime(uint64_t current);
 
     void setBurstStartTime(uint64_t current_time);
     void setState(State new_state, uint64_t current_time);

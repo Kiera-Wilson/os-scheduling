@@ -74,6 +74,15 @@ void Process::setCurrentBurst(int nextBurst)
     current_burst = nextBurst;
 }
 
+void Process::setStartWaitTime(uint64_t current){
+    start_waitTime = current;
+}
+
+void Process::setEndWaitTime(uint64_t current){
+    wait_time = current - start_waitTime;
+}
+
+
 
 uint16_t Process::getPid() const
 {
@@ -163,6 +172,9 @@ void Process::updateProcess(uint64_t current_time)
 {
     // use `current_time` to update turnaround time, wait time, burst times, 
     // cpu time, and remaining time
+    turn_time = getTurnaroundTime() + current_time;
+    //cpu_time = 
+    
 }
 
 void Process::updateBurstTime(int burst_idx, uint32_t new_time)
