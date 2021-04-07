@@ -83,15 +83,14 @@ void Process::setStartCPUTime(uint64_t current){
 }
 
 void Process::setEndCPUTime(uint64_t current){
-
     uint64_t temp = current - start_CPUTime;
     cpu_time = cpu_time + temp;
+    
 }
 
 void Process::setEndWaitTime(uint64_t current){
 
-    uint64_t temp = current - start_waitTime;
-    wait_time = wait_time + temp;
+    wait_time = wait_time + (current - start_waitTime);
 }
 
 void Process::setStartTurnTime(uint64_t current){
@@ -99,7 +98,7 @@ void Process::setStartTurnTime(uint64_t current){
 }
 
 void Process::setEndTurnTime(uint64_t current){
-    uint64_t temp = current - start_TurnTime;
+    int32_t temp = current/1000 - start_TurnTime/1000;
     turn_time = turn_time + temp;
 }
 
@@ -169,6 +168,13 @@ void Process::setState(State new_state, uint64_t current_time)
     if (state == State::NotStarted && new_state == State::Ready)
     {
         launch_time = current_time;
+        
+    }
+    if(new_state == State::Ready){
+        start_waitTime = current_time;
+    }
+    if(state == State::Ready){
+        wait_time += current_time - start_waitTime;
     }
     state = new_state;
 }
@@ -192,7 +198,6 @@ void Process::updateProcess(uint64_t current_time)
 {
     // use `current_time` to update turnaround time, wait time, burst times, 
     // cpu time, and remaining time
-    turn_time = getTurnaroundTime() + current_time;
     remain_time = remain_time - cpu_time;
     
 }

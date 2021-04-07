@@ -24,9 +24,9 @@ private:
     int32_t cpu_time;           // total time spent running on a CPU core
     int32_t remain_time;        // CPU time remaining until terminated
     uint64_t launch_time;       // actual time in ms (since epoch) that process was 'launched'
-    uint64_t start_waitTime = 0;
-    uint64_t start_CPUTime = 0;
-    uint64_t start_TurnTime = 0;
+    uint64_t start_waitTime;
+    uint64_t start_CPUTime;
+    uint64_t start_TurnTime;
     // you are welcome to add other private data fields here if you so choose
 
 public:
