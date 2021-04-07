@@ -78,10 +78,30 @@ void Process::setStartWaitTime(uint64_t current){
     start_waitTime = current;
 }
 
-void Process::setEndWaitTime(uint64_t current){
-    wait_time = current - start_waitTime;
+void Process::setStartCPUTime(uint64_t current){
+    start_CPUTime = current;
 }
 
+void Process::setEndCPUTime(uint64_t current){
+
+    uint64_t temp = current - start_CPUTime;
+    cpu_time = cpu_time + temp;
+}
+
+void Process::setEndWaitTime(uint64_t current){
+
+    uint64_t temp = current - start_waitTime;
+    wait_time = wait_time + temp;
+}
+
+void Process::setStartTurnTime(uint64_t current){
+    start_TurnTime = current;
+}
+
+void Process::setEndTurnTime(uint64_t current){
+    uint64_t temp = current - start_TurnTime;
+    turn_time = turn_time + temp;
+}
 
 
 uint16_t Process::getPid() const
@@ -173,7 +193,7 @@ void Process::updateProcess(uint64_t current_time)
     // use `current_time` to update turnaround time, wait time, burst times, 
     // cpu time, and remaining time
     turn_time = getTurnaroundTime() + current_time;
-    //cpu_time = 
+    remain_time = remain_time - cpu_time;
     
 }
 
