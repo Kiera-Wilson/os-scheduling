@@ -85,12 +85,14 @@ void Process::setStartCPUTime(uint64_t current){
 void Process::setEndCPUTime(uint64_t current){
     uint64_t temp = current - start_CPUTime;
     cpu_time = cpu_time + temp;
+    remain_time = remain_time - temp;
     
 }
 
 void Process::setEndWaitTime(uint64_t current){
-
+    //std::cout << pid << ": wait_time " << wait_time << " current " << current << " start_waitTime " << start_waitTime << std::endl;
     wait_time = wait_time + (current - start_waitTime);
+    
 }
 
 void Process::setStartTurnTime(uint64_t current){
@@ -98,7 +100,7 @@ void Process::setStartTurnTime(uint64_t current){
 }
 
 void Process::setEndTurnTime(uint64_t current){
-    int32_t temp = current/1000 - start_TurnTime/1000;
+    int32_t temp = current - start_TurnTime;
     turn_time = turn_time + temp;
 }
 
@@ -169,12 +171,6 @@ void Process::setState(State new_state, uint64_t current_time)
     {
         launch_time = current_time;
         
-    }
-    if(new_state == State::Ready){
-        start_waitTime = current_time;
-    }
-    if(state == State::Ready){
-        wait_time += current_time - start_waitTime;
     }
     state = new_state;
 }

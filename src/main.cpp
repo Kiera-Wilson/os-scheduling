@@ -68,7 +68,7 @@ int main(int argc, char **argv)
         // If process should be launched immediately, add to ready queue
         if (p->getState() == Process::State::Ready)
         {
-            //p->setStartWaitTime(currentTime());
+            p->setStartWaitTime(currentTime());
             shared_data->ready_queue.push_back(p);
         }
     }
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
                 {
                     std::lock_guard<std::mutex>lock(shared_data->mutex);
                     shared_data->ready_queue.push_back(processes[i]);
-                    //processes[i]->setStartWaitTime(currentTime());
+                    processes[i]->setStartWaitTime(currentTime());
                 }
                 
 
@@ -131,7 +131,7 @@ int main(int argc, char **argv)
                 {
                     std::lock_guard<std::mutex>lock(shared_data->mutex);
                     shared_data->ready_queue.push_back(processes[i]);
-                    //processes[i]->setStartWaitTime(currentTime());
+                    processes[i]->setStartWaitTime(currentTime());
                 }
                 
             }
@@ -267,7 +267,6 @@ void coreRunProcesses(uint8_t core_id, SchedulerData *shared_data)
                 {
                     std::lock_guard<std::mutex>lock(shared_data->mutex);
                     shared_data->ready_queue.push_back(process);
-                    //process->setStartWaitTime(currentTime());
                     process->setEndCPUTime(currentTime());
                 }
                 
@@ -282,7 +281,6 @@ void coreRunProcesses(uint8_t core_id, SchedulerData *shared_data)
                 {
                     std::lock_guard<std::mutex>lock(shared_data->mutex);
                     shared_data->ready_queue.push_back(process);
-                    //process->setStartWaitTime(currentTime());
                     process->setEndCPUTime(currentTime());
                 }
                 
@@ -370,7 +368,7 @@ void clearOutput(int num_lines)
 uint64_t currentTime()
 {
     uint64_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                  std::chrono::system_clock::now().time_since_epoch()).count();
+                  std::chrono::steady_clock::now().time_since_epoch()).count();
     return ms;
 }
 
