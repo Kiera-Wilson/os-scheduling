@@ -211,7 +211,43 @@ int main(int argc, char **argv)
     //     - Overall average
     //  - Average turnaround time
     //  - Average waiting time
+    double CPU_utilization = 0;
+    double average_waitTime = 0;
+    double average_turnaround = 0;
+    double firstThroughput = 0;
+    double secondThroughput =0;
+    double overAllThroughput = 0;
+    int processes_firstHalf = (processes.size()/2) + (processes.size()%2);
+    int processes_secondHalf = (processes.size()/2);
 
+    for(int i=0; i<processes.size(); i++){
+        CPU_utilization = CPU_utilization + (processes[i]->getCpuTime()/processes[i]->getTurnaroundTime());
+        average_waitTime = average_waitTime + processes[i]->getWaitTime();
+        average_turnaround = average_turnaround + processes[i]->getTurnaroundTime();
+
+        if(processes_firstHalf > i){
+            firstThroughput = firstThroughput + processes[i]->getTurnaroundTime();
+        }else{
+            secondThroughput = secondThroughput + processes[i]->getTurnaroundTime();
+        }
+
+    }
+
+    CPU_utilization = (CPU_utilization/processes.size()) * 100.0;
+    average_waitTime = average_waitTime/processes.size();
+    average_turnaround = average_turnaround/processes.size();
+    firstThroughput = firstThroughput/processes_firstHalf;
+    secondThroughput = secondThroughput/processes_secondHalf;
+    overAllThroughput = (firstThroughput+secondThroughput)/2;
+
+    std::cout << std::endl << "Final Statistics" << std::endl;
+    printf(" - CPU utilization: %.1f%%\n", CPU_utilization);
+    std::cout << " - Throughput" << std::endl;
+    printf("    - Average for first 50%% of processes finished: %.1f seconds/process\n", firstThroughput);
+    printf("    - Average for second 50%% of processes finished: %.1f seconds/process\n", secondThroughput);
+    printf("    - Overall average: %.1f seconds/process\n", overAllThroughput);
+    printf(" - Average turnaround time: %.1f seconds\n", average_turnaround);
+    printf(" - Average waiting time: %.1f seconds\n", average_waitTime);
     
     // Clean up before quitting program
     processes.clear();
@@ -233,7 +269,7 @@ void coreRunProcesses(uint8_t core_id, SchedulerData *shared_data)
     //     - Interrupted (RR time slice has elapsed or process preempted by higher priority process)
         
         Process* process = NULL;
-        
+        int a =0;
         {
             std::lock_guard<std::mutex>lock(shared_data->mutex);
             
@@ -242,7 +278,8 @@ void coreRunProcesses(uint8_t core_id, SchedulerData *shared_data)
                 shared_data->ready_queue.pop_front(); //take the element off of the ready queue
                 process->setCpuCore(core_id);
                 process->setBurstStartTime(currentTime());
-                process->setEndWaitTime(currentTime());
+                //process->setEndWaitTime(currentTime());
+                process->updateProcess(currentTime()); // try??
                 process->setState(Process::State::Running, currentTime());
                 process->setStartCPUTime(currentTime());
             }
@@ -319,7 +356,7 @@ void coreRunProcesses(uint8_t core_id, SchedulerData *shared_data)
     
    
 
-    usleep(50000);
+    //usleep(50000);
 
     //  - * = accesses shared data (ready queue), so be sure to use proper synchronization
     }

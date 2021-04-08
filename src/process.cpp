@@ -81,23 +81,23 @@ void Process::setStartWaitTime(uint64_t current){
 void Process::setStartCPUTime(uint64_t current){
     start_CPUTime = current;
 }
+void Process::setStartTurnTime(uint64_t current){
+    start_TurnTime = current;
+}
+
+
 
 void Process::setEndCPUTime(uint64_t current){
-    uint64_t temp = current - start_CPUTime;
-    cpu_time = cpu_time + temp;
-    remain_time = remain_time - temp;
+    cpu_time = cpu_time + (current - start_CPUTime);
+    remain_time = remain_time - (current - start_CPUTime);
     
 }
 
 void Process::setEndWaitTime(uint64_t current){
-    //std::cout << pid << ": wait_time " << wait_time << " current " << current << " start_waitTime " << start_waitTime << std::endl;
     wait_time = wait_time + (current - start_waitTime);
-    
 }
 
-void Process::setStartTurnTime(uint64_t current){
-    start_TurnTime = current;
-}
+
 
 void Process::setEndTurnTime(uint64_t current){
     int32_t temp = current - start_TurnTime;
@@ -194,7 +194,8 @@ void Process::updateProcess(uint64_t current_time)
 {
     // use `current_time` to update turnaround time, wait time, burst times, 
     // cpu time, and remaining time
-    remain_time = remain_time - cpu_time;
+    //remain_time = remain_time - cpu_time;
+    wait_time = wait_time + (current_time - start_waitTime);
     
 }
 
