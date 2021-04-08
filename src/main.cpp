@@ -263,10 +263,15 @@ void coreRunProcesses(uint8_t core_id, SchedulerData *shared_data)
     while (!(shared_data->all_terminated))
     {
     //   - *Get process at front of ready queue
-
     //   - Simulate the processes running until one of the following:
     //     - CPU burst time has elapsed
     //     - Interrupted (RR time slice has elapsed or process preempted by higher priority process)
+    //  - Place the process back in the appropriate queue
+    //     - I/O queue if CPU burst finished (and process not finished) -- no actual queue, simply set state to IO
+    //     - Terminated if CPU burst finished and no more bursts remain -- no actual queue, simply set state to Terminated
+    //     - *Ready queue if interrupted (be sure to modify the CPU burst time to now reflect the remaining time)
+    //  - Wait context switching time
+    //  - * = accesses shared data (ready queue), so be sure to use proper synchronization
         
         Process* process = NULL;
         int a =0;
@@ -338,27 +343,9 @@ void coreRunProcesses(uint8_t core_id, SchedulerData *shared_data)
 
         }
 
-
-
-
-    //  - Place the process back in the appropriate queue
-    //     - I/O queue if CPU burst finished (and process not finished) -- no actual queue, simply set state to IO
-    //     - Terminated if CPU burst finished and no more bursts remain -- no actual queue, simply set state to Terminated
-    //     - *Ready queue if interrupted (be sure to modify the CPU burst time to now reflect the remaining time)
-    //  - Wait context switching time
-
-    /*
-    {
-        std::lock_guard<std::mutex>lock(shared_data->mutex);
-        usleep(shared_data->context_switch);
-    }*/
-
-    
    
-
-    //usleep(50000);
-
-    //  - * = accesses shared data (ready queue), so be sure to use proper synchronization
+    usleep(shared_data->context_switch);
+    
     }
 }
 

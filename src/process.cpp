@@ -90,6 +90,9 @@ void Process::setStartTurnTime(uint64_t current){
 void Process::setEndCPUTime(uint64_t current){
     cpu_time = cpu_time + (current - start_CPUTime);
     remain_time = remain_time - (current - start_CPUTime);
+    if(state == State::Terminated){
+        remain_time = 0.0;
+    }
     
 }
 
